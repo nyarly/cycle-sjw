@@ -1,0 +1,168 @@
+body {
+	font-size: 1.5vh;
+	cursor: default;
+}
+
+#startDiv {
+	width: 20%;
+	margin-left: 40%;
+	margin-top: 20%;
+};
+
+#gameDiv h2 {
+	font-size: 2vh;
+	margin-top: 2vh;
+	margin-bottom: 0;
+}
+
+#gameDiv h4 {
+	font-size: 1.6vh;
+	margin-bottom: 0;
+	margin-top: 0;
+	padding: 0.15vh;
+	background-color: lightgrey;
+}
+
+ul {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+li {
+	font-size: 1.3vh;
+}
+
+.columnDiv {
+	height: 90vh;
+	width: 30vw;
+	float: left;
+}
+
+#startDiv {
+	text-align: center;
+}
+
+#OrganizationDiv {
+	height: 10vh;
+}
+
+#ReputationDiv {
+	height: 6vh;
+}
+
+#CoordinationDiv {
+	height: 30vh;
+}
+
+#lowBuzzDiv {
+	color: red;
+}
+
+.elevatorSeized {
+	color: red;
+}
+
+#OfficeStaffSummary {
+	margin-left: 10%;
+}
+
+.upgradeDiv {
+	border: 1px solid grey;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-bottom: 1%;
+}
+
+.unlockDiv {
+	border: 1px solid grey;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-bottom: 1%;
+}
+
+.allyDiv {
+	border: 1px solid grey;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-bottom: 1%;
+}
+
+.topButton {
+	margin-left: 2%;
+}
+
+.Display {
+	width: 45%;
+	margin-left: 2%;
+	float: left;
+	font-weight: bold;
+}
+
+.DisplaySpan {
+	font-weight: normal;
+}
+
+.Actions {
+	margin-left: 2%;
+}
+
+.Staff {
+	margin-left: 2%;
+	clear: both;
+}
+
+.Thresholds {
+	font-style: italic;
+	margin-left: 5%;
+}
+
+.Notes {
+	margin-left: 2%;
+	clear: both;
+}
+
+.allyDescription {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 2%;
+}
+
+#LegislationNotesDiv {
+	width: 55%;
+	float: left;
+}
+
+.Legislation {
+	border: 1px solid grey;
+}
+
+.Legislation p {
+	margin-left: 0.5vw;
+	margin-right: 0.5vw;
+}
+
+.Legislation button {
+/*
+	margin-left: 0.5vw;
+	margin-right: 0.5vw;
+ */
+	width: 100%;
+}
+
+#overtonSVG {
+	width: 40%;
+	float: right;
+}
+
+#lorenzDiv {
+	width: 30%;
+	float:right;
+}
+
+#victorySVG {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
