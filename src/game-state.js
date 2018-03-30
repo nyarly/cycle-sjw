@@ -1,3 +1,6 @@
+import xs from 'xstream';
+import {Game} from './game';
+import {adapt} from '@cycle/run/lib/adapt';
 
 // The game state driver takes as a sink a stream of update objects. It applies the function value of each key to the game state.
 // like { "people": (n) => n+1 }

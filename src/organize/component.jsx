@@ -1,3 +1,5 @@
+import xs from 'xstream';
+
 export function Organize({sources}) {
   const organize$ = sources.DOM.select("#organize").events("click")
 
@@ -7,7 +9,7 @@ export function Organize({sources}) {
 
   const org = {
     name: "Organization",
-    update$: clicks.organize$.map((click) => {
+    update$: organize$.map((click) => {
         return function(game) {
           let recruit = false;
           let updates = {};
