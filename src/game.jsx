@@ -28,6 +28,8 @@ function attrname(name) {
 
 export class Game {
   constructor() {
+    this.started = false;
+
     this.tickCount = 0;
 
     this.people = 1;
@@ -79,6 +81,7 @@ export class Game {
     for (var employee of staff) {
       this[attrname(employee.name)] = 0;
     }
+
   }
 
   buzzModifier() {

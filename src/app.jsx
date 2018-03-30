@@ -6,20 +6,12 @@ import isolate from '@cycle/isolate';
 import sampleCombine from 'xstream/extra/sampleCombine';
 
 export function App (sources) {
-  const headGame$ = xs.create();
+  const actions = intent({ sources });
+  const {update$, panes} = model({ actions, sources });
 
-  const actions = intent({ game$: headGame$, sources });
-  const {tailGame$, panes} = model({ game$: headGame$, actions, sources });
-  console.log(panes);
+  const view$ = view({ sources, panes });
 
-  // this is how we loop the game back in
-  headGame$.imitate(tailGame$);
-
-  const game$ = tailGame$.startWith(null).debug();
-
-  const view$ = view({ game$, panes });
-
-  return {DOM: view$};
+  return {DOM: view$, Game: update$};
 }
 
 function intent({sources}) {
@@ -29,43 +21,33 @@ function intent({sources}) {
   }
 }
 
-function model({game$, actions, sources}) {
+function model({actions, sources}) {
   const newgame$ = actions.newgame$;
 
   const create$ = newgame$
-  .map((_) => {
-      return function() {
-        return new Game();
-      }
-    });
+  .map((_) => { started: (_) => true });
 
-  const g = game$.startWith(null)
-
-  const Org = isolate(Organize, "organize");
-  const org = Org({game$: g, sources});
-  const Coord = isolate(Coordinate, "coordinate");
-  const coord = Coord({game$: g, sources});
-
+  const org = isolate(Organize, "organize")({sources});
+  const coord = isolate(Coordinate, "coordinate")({sources});
   const panes = {org, coord}
 
-  const update$ = xs.merge(create$, org.update$, coord.update$)
-  .debug()
-  .compose(sampleCombine(g))
-  .map(([f, game]) => {
-      return f(game);
-    });
+  const update$ = xs.merge(create$, org.update$, coord.update$);
 
-  return { tailGame$: update$, panes };
+  return { update$, panes };
 }
 
-function view({game$, panes}) {
-  const vtree$ = xs.combine(game$, panes.org.DOM)
-    .debug()
-    .map(([game, org]) => {
-        const panes = {org};
+function view({sources, panes}) {
+  const start$ = sources.Game.values("started");
+  const vtree$ = xs.combine(
+    start$,
+    panes.org.DOM,
+    panes.coord.DOM
+  ).debug()
+    .map(([started, org, coord]) => {
+        const panes = {org, coord};
         return <div id="main">
           <TopMenu />
-          <GameView game={game} panes={panes} />
+          <GameView game={started} panes={panes} />
         </div>
   })
 
@@ -82,11 +64,11 @@ function TopMenu() {
 }
 
 // JSX component
-function GameView({game, panes}) {
-  if (game == null) {
+function GameView({started, panes}) {
+  if (started) {
     return attractScreen()
   } else {
-    return liveGame(game, panes)
+    return liveGame(panes)
   }
 }
 
@@ -100,17 +82,15 @@ function attractScreen() {
   </div>
 }
 
-function liveGame(game, panes) {
+function liveGame(panes) {
   return <div id="gameDiv">
     <div id="col1" className="columnDiv">
-      <Pane game={game} comp={panes.org} />
+      {panes.org}
+      {panes.coord}
     </div>
     <div id="col2" className="columnDiv">
     </div>
     <div id="col3" className="columnDiv">
     </div>
   </div>
-}
-function Pane({comp}) {
-  return comp;
 }
