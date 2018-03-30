@@ -1,0 +1,15 @@
+export default [
+  {name:'Launch Website',header: 'Office',costStat:'Money',costNum:100,description:'Increases recruitment and fundraising effectiveness.'},
+  {name:'Recurring Donations',prerequisite:'Launch Website',header: 'Office',costStat:'Money',costNum:500,description:'Secures a small income based on membership size.'},
+  {name:'Integrated Social Media',prerequisite:'Launch Website',header: 'Office',costStat:'Money',costNum:500,description:'Social Media Ambassadors decrease buzz decay rate.'},
+  {name:'Online Calendar',prerequisite:'Launch Website',header: 'Office',costStat:'Money',costNum:1000,description:'Allows volunteers to contribute shifts to events in a chaotic and unreliable fashion.'},
+  // 		{name:'Revamp Website',prerequisite:'Launch Website',header: 'Office',costStat:'Money',costNum:10000,description:'Improves all website benefits.'},
+  {name:'Office Unit',header: 'Office',costStat:'Money',costNum:100000,upgradeStat:'Office Space',upgradeToNum:10},
+  {name:'Office Suite',prerequisite:'Office Unit',header: 'Office',costStat:'Money',costNum:500000,upgradeStat:'Office Space',upgradeToNum:20},
+  {name:'Storefront Office',prerequisite:'Office Suite',header: 'Office',costStat:'Money',costNum:1000000,upgradeStat:'Office Space',upgradeToNum:50},
+  {name:'Small Office Building',prerequisite:'Storefront Office',header: 'Office',costStat:'Money',costNum:5000000,upgradeStat:'Office Space',upgradeToNum:100},
+  {name:'Tower Floor',prerequisite:'Small Office Building',header: 'Office',costStat:'Money',costNum:50000000,upgradeStat:'Office Space',upgradeToNum:200},
+  {name:'Office Tower',prerequisite:'Tower Floor',header: 'Office',costStat:'Money',costNum:100000000,upgradeStat:'Office Space',upgradeToNum:500},
+  // 		{name:'Metropolitan Office Tower',prerequisite:'Office Tower',header: 'Office',costStat:'Money',costNum:5000000,upgradeStat:'Office Space',upgradeToNum:700},
+  {name:'Field Office',prerequisite:'Office Tower',header: 'Office',costStat:'Money',costNum:500000,upgradeStat:'Office Space',upgradeByNum:50},
+];
