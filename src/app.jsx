@@ -6,16 +6,11 @@ import isolate from '@cycle/isolate';
 import sampleCombine from 'xstream/extra/sampleCombine';
 
 export function App (sources) {
-  console.log(1);
   const actions = intent({ sources });
-  console.log(1);
   const {update$, panes} = model({ sources, actions });
-  console.log(1);
-
   const view$ = view({ sources, panes });
-  console.log(1);
 
-  return {DOM: view$, Game: update$.debug()};
+  return {DOM: view$, Game: update$};
 }
 
 function intent({sources}) {
@@ -41,19 +36,19 @@ function model({sources, actions}) {
 }
 
 function view({sources, panes}) {
-  const start$ = sources.Game.values("started").debug((v) => console.log("view started", v));
+  const start$ = sources.Game.values("started");
   const vtree$ = xs.combine(
     start$,
     panes.org.DOM,
     panes.coord.DOM
-  ).debug()
-    .map(([started, org, coord]) => {
-        const panes = {org, coord};
-        return <div id="main">
-          <TopMenu />
-          <GameView started={started} panes={panes} />
-        </div>
-  })
+  )
+  .map(([started, org, coord]) => {
+      const panes = {org, coord};
+      return <div id="main">
+      <TopMenu />
+      <GameView started={started} panes={panes} />
+      </div>
+    })
 
   return vtree$
 }

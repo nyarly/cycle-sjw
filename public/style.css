@@ -42,8 +42,22 @@ li {
 	text-align: center;
 }
 
-#OrganizationDiv {
+#OrganizationDiv, #organization-div {
 	height: 10vh;
+}
+
+dl.horizontal dt {
+  display: inline;
+  font-weight: bold;
+}
+
+dl.horizontal dt::after {
+  content: ":";
+}
+
+dl.horizontal dd {
+  display: inline;
+  margin: 0px 0.5em;
 }
 
 #ReputationDiv {
