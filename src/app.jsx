@@ -6,12 +6,16 @@ import isolate from '@cycle/isolate';
 import sampleCombine from 'xstream/extra/sampleCombine';
 
 export function App (sources) {
+  console.log(1);
   const actions = intent({ sources });
-  const {update$, panes} = model({ actions, sources });
+  console.log(1);
+  const {update$, panes} = model({ sources, actions });
+  console.log(1);
 
   const view$ = view({ sources, panes });
+  console.log(1);
 
-  return {DOM: view$, Game: update$};
+  return {DOM: view$, Game: update$.debug()};
 }
 
 function intent({sources}) {
@@ -21,11 +25,11 @@ function intent({sources}) {
   }
 }
 
-function model({actions, sources}) {
+function model({sources, actions}) {
   const newgame$ = actions.newgame$;
 
   const create$ = newgame$
-  .map((_) => { started: (_) => true });
+  .map((_) => { return {started: (_) => true} });
 
   const org = isolate(Organize, "organize")({sources});
   const coord = isolate(Coordinate, "coordinate")({sources});
@@ -37,7 +41,7 @@ function model({actions, sources}) {
 }
 
 function view({sources, panes}) {
-  const start$ = sources.Game.values("started");
+  const start$ = sources.Game.values("started").debug((v) => console.log("view started", v));
   const vtree$ = xs.combine(
     start$,
     panes.org.DOM,
@@ -47,7 +51,7 @@ function view({sources, panes}) {
         const panes = {org, coord};
         return <div id="main">
           <TopMenu />
-          <GameView game={started} panes={panes} />
+          <GameView started={started} panes={panes} />
         </div>
   })
 
@@ -65,7 +69,7 @@ function TopMenu() {
 
 // JSX component
 function GameView({started, panes}) {
-  if (started) {
+  if (!started) {
     return attractScreen()
   } else {
     return liveGame(panes)

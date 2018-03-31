@@ -15,7 +15,11 @@ export function FALQSCommGameStateDriver(sink$, name) {
   sink$.addListener({
       next: (updateBundle) => {
         for(const up in updateBundle) {
-          theGame[up] = updateBundle[up](theGame[up])
+          const old = theGame[up]
+          const nw = updateBundle[up](old)
+
+          console.log("Updating", up, old, nw)
+          theGame[up] = nw;
         }
 
         source.ping()
@@ -34,20 +38,33 @@ class Sourcer {
   ping() {
     for(name in this.streams) {
       const val = this.game[name]
+      console.log("Sending", name, val)
 
-      this.streams[name].shamefullySendNext(val);
+      this.streams[name].in.shamefullySendNext(val);
     }
   }
 
   getStream(name) {
     if (this.streams.hasOwnProperty(name)) {
-      return this.streams[name]
+      return this.streams[name].out;
     }
 
-    const stream = xs.never();
+    console.log("New stream", name)
 
-    this.streams[name] = stream;
-    return stream;
+    const base = xs.create();
+
+    const result = xs.merge(
+      xs.of(this.game[name]),
+      base)
+    .remember()
+    .debug((v) => console.log(name, v));
+
+    this.streams[name] = {
+      in: base,
+      out: result,
+    };
+
+    return result;
   }
 
   values(name) {
