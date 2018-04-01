@@ -7,16 +7,17 @@ import sampleCombine from 'xstream/extra/sampleCombine';
 
 export function App (sources) {
   const actions = intent({ sources });
-  const {update$, panes} = model({ sources, actions });
+  const {restart$, update$, panes} = model({ sources, actions });
   const view$ = view({ sources, panes });
 
-  return {DOM: view$, Game: update$};
+  return {DOM: view$, Game: update$, Storage: restart$};
 }
 
 function intent({sources}) {
   const domSource = sources.DOM;
   return {
     newgame$: domSource.select("#new-game").events('click'),
+    restart$: domSource.select("#newGameButton").events('click'),
   }
 }
 
@@ -32,7 +33,10 @@ function model({sources, actions}) {
 
   const update$ = xs.merge(create$, org.update$, coord.update$);
 
-  return { update$, panes };
+  const restart$ = actions.restart$
+  .map(() => { return { action: "clear", key: "liveGame" } });
+
+  return { restart$, update$, panes };
 }
 
 function view({sources, panes}) {

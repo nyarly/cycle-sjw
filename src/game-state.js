@@ -35,6 +35,7 @@ class Sourcer {
   constructor(game) {
     this.game = game;
     this.streams = {};
+    this.gameStream = xs.create();
   }
 
   ping() {
@@ -42,6 +43,11 @@ class Sourcer {
       const val = this.game[name]
       this.streams[name].in.shamefullySendNext(val);
     }
+    this.gameStream.shamefullySendNext(this.game);
+  }
+
+  wholeGame() {
+    return this.gameStream;
   }
 
   getStream(name) {
