@@ -78,7 +78,14 @@ export class Game {
     for (var employee of staff) {
       this[utils.attrname(employee.name)] = 0;
     }
+  }
 
+  get totalStaff() {
+    let sum = 0;
+    for (const emp of staff) {
+      sum += this[utils.attrname(emp.name)]
+    }
+    return sum;
   }
 
   buzzModifier() {

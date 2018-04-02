@@ -17,7 +17,6 @@ export function Coordinate({sources}) {
   const game$ = sources.Game.combinedValues(...threshold.gameFields);
 
   return {
-    name: "Coordination",
     update$,
     DOM: xs.combine(game$, ...doms)
     .map(([game, ...actions]) => {

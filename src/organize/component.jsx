@@ -1,5 +1,3 @@
-import xs from 'xstream';
-
 import {thresholdFields, LockedThreshold} from '../allThresholds';
 
 export function Organize({sources}) {
@@ -12,7 +10,6 @@ export function Organize({sources}) {
   const game$ = sources.Game.combinedValues("started", "money", "people", ...thresholdFields("people"));
 
   const org = {
-    name: "Organization",
     update$: organize$.map((click) => {
         let recruit = false;
         let updates = {};

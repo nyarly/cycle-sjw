@@ -11,18 +11,16 @@ export function thresholdFields(statname) {
 }
 
 export function LockedThreshold({game, stat}) {
-  const thresh = firstLocked(game);
-  console.log("locked threshold", thresh);
+  const thresh = firstLocked(game, stat);
   if (!thresh) {
     return null
   }
   return <div className="unlock-hint">{thresh.hintText}</div>
 }
 
-function firstLocked(game) {
-  console.log("all", allThresholds);
+function firstLocked(game,stat) {
   return allThresholds
-  .filter((th) => th.statField == "people")
+  .filter((th) => th.statField == stat)
   .filter((th) => !th.unlocked(game))
   .reduce((lowest, th) => (lowest == null || th.minimum < lowest.minimum) ? th : lowest, null)
 }

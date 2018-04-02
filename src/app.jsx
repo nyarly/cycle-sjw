@@ -2,6 +2,7 @@ import xs from 'xstream';
 import {Game} from './game';
 import {Organize} from './organize/component';
 import {Coordinate} from './coordinate/component';
+import {Reputation} from './reputation/component';
 import isolate from '@cycle/isolate';
 import sampleCombine from 'xstream/extra/sampleCombine';
 
@@ -29,7 +30,8 @@ function model({sources, actions}) {
 
   const org = isolate(Organize, "organize")({sources});
   const coord = isolate(Coordinate, "coordinate")({sources});
-  const panes = {org, coord}
+  const rep = isolate(Reputation, "reputation")(sources);
+  const panes = {org, coord, rep}
 
   const update$ = xs.merge(create$, org.update$, coord.update$);
 
@@ -44,10 +46,11 @@ function view({sources, panes}) {
   const vtree$ = xs.combine(
     start$,
     panes.org.DOM,
-    panes.coord.DOM
+    panes.coord.DOM,
+    panes.rep.DOM,
   )
-  .map(([started, org, coord]) => {
-      const panes = {org, coord};
+  .map(([started, org, coord, rep]) => {
+      const panes = {org, coord, rep};
       return <div id="main">
       <TopMenu />
       <GameView started={started} panes={panes} />
@@ -89,6 +92,7 @@ function liveGame(panes) {
   return <div id="gameDiv">
     <div id="col1" className="columnDiv">
       {panes.org}
+      {panes.rep}
       {panes.coord}
     </div>
     <div id="col2" className="columnDiv">
