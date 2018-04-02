@@ -16,7 +16,7 @@ export class Threshold {
   }
 
   get hintText() {
-    this.name + " at " + this.minimum.toLocaleString() + " " + this.stat + ".";
+    return "Unlock " + this.name + " at " + this.minimum.toLocaleString() + " " + this.stat + ".";
   }
 
   unlocked(game) {

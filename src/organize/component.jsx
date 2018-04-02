@@ -1,11 +1,16 @@
 import xs from 'xstream';
 
+import {allThresholds} from '../allThresholds';
+
 export function Organize({sources}) {
   const organize$ = sources.DOM.select("#organize").events("click")
 
   const started$ = sources.Game.values("started");
   const money$ = sources.Game.values("money");
   const people$ = sources.Game.values("people");
+
+  const thresholdFields = allThresholds.reduce((list, th) => list.concat(th.gameFields), [])
+  const game$ = sources.Game.combinedValues("started", "money", "people", ...thresholdFields);
 
   const org = {
     name: "Organization",
@@ -23,11 +28,13 @@ export function Organize({sources}) {
         };
         return updates;
       }),
-    DOM: xs.combine(started$, money$, people$)
-    .map(([started, money, people]) => {
+    DOM: game$
+    .map((game) => {
+        const {started, money, people} = game;
         if (!started) {
           return null;
         }
+
         return <div id="organize-div">
         <h2>Organization</h2>
         <dl className="horizontal">
@@ -36,9 +43,29 @@ export function Organize({sources}) {
         <dt>Money</dt>
         <dd>${money}</dd>
         </dl>
+
+        <LockedThreshold game={game} stat="people" />
+
         <button id="organize">Organize</button>
         </div>
       }),
     };
   return org;
+}
+
+function LockedThreshold({game, stat}) {
+  const thresh = firstLocked(game);
+  console.log("locked threshold", thresh);
+  if (!thresh) {
+    return null
+  }
+  return <div className="unlock-hint">{thresh.hintText}</div>
+}
+
+function firstLocked(game) {
+  console.log("all", allThresholds);
+  return allThresholds
+  .filter((th) => th.statField == "people")
+  .filter((th) => !th.unlocked(game))
+  .reduce((lowest, th) => (lowest == null || th.minimum < lowest.minimum) ? th : lowest, null)
 }
