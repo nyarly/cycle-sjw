@@ -1,167 +1,37 @@
 import xs from 'xstream';
-import sampleCombine from 'xstream/extra/sampleCombine';
-import isolate from '@cycle/isolate';
 
 import {Threshold} from '../threshold';
+import {actionComponent} from './actionComponent';
 
 export function Coordinate({sources}) {
-  const march = actionComponent(sources, new Threshold("March", "people", 10),
-    {completionFactor: 0.2, people:  0.2, money: 0, reputation: 0.8, max: undefined})
+  const actions = [
+    actionComponent(sources, new Threshold("March", "people", 10),
+      {completionFactor: 0.2, people:  0.2, money: 0, reputation: 0.8, max: undefined}),
+    actionComponent(sources, new Threshold("Picket", "people", 20),
+      {completionFactor: 0.1, people: 0, money: 0, reputation: 1, max: 100}),
+    actionComponent(sources, new Threshold("Direct Action", "people", 100),
+      {completionFactor: 0.5, people: 0.4, money: 0.2, reputation: 0.4, max: 500}),
+  ];
+
+  const update$ = xs.merge(...actions.map((action) => action.update$));
+  const doms = actions.map((action) => action.DOM);
 
   const game$ = sources.Game.combinedValues("started", "people");
 
   return {
     name: "Coordination",
-    update$: xs.merge(march.update$),
-    DOM: xs.combine(game$, march.DOM)
-    .map(([{started, people}, marchAction]) => {
+    update$,
+    DOM: xs.combine(game$, ...doms)
+    .map(([{started, people}, march, picket, direct]) => {
         if (!started || people < 10) {
           return null
         }
         return <div id="coordinate-div">
         <h2>Coordination</h2>
-        {marchAction}
+        {march}
+        {picket}
+        {direct}
         </div>
       }),
     };
-}
-
-//props: xs.of({ completionFactor: 0.2, people:  0.2, money: 0, reputation: 0.8, max: undefined, threshold: new Threshold("March", "people", 10), })
-function actionComponent(sources, threshold, {completionFactor, people, money, reputation, max}) {
-  return isolate(Action, threshold.name)({...sources,
-      props: xs.of({ threshold, completionFactor, people, money, reputation, max })
-    });
-}
-
-function Action({Game, DOM, props}) {
-  const prop$ = props.remember();
-
-  const game$ = prop$
-  .map((p) => Game.combinedValues(
-    "people",
-    "buzz",
-    "volunteercoordinators",
-    ...p.threshold.gameFields
-  ))
-  .flatten();
-
-  const newProps$ = xs.combine(prop$, game$)
-  .map(([ps, {people}]) => {
-      const base = { ...ps,
-        completion:  Math.floor(ps.completionFactor * people),
-        name: ps.threshold.name,
-        progress: 0,
-        ready: false
-      };
-      return base
-    })
-
-  const clicks = actionIntents({DOM})
-
-  const planning$ = clicks.plan$
-  .compose(sampleCombine(game$))
-  .map(([_, {people, volunteercoordinators}]) => {
-      return (action) => {
-        action.completion = Math.floor(action.completionFactor * people);
-        if (action.max !== undefined) {
-          action.completion = Math.min(action.completion, action.max);
-        }
-        action.progress += (1 + volunteercoordinators);
-        if (action.progress >= action.completion) {
-          action.ready = true;
-        };
-        return action;
-      }
-    });
-
-
-  const reset$ = clicks.do$
-  .compose(sampleCombine(newProps$))
-  .map(([_, np]) => {
-      return (action) => {
-        return {...np, ready: false};
-      };
-    });
-
-
-  const state$ = newProps$
-  .map((newProps) => {
-      return xs.merge(planning$, reset$)
-      .fold((acc, f) => f(acc), newProps)
-    })
-  .flatten();
-
-  const update$ = clicks.do$
-  .compose(sampleCombine(game$, prop$))
-  .map(([_, {people, buzz}, action]) => {
-      const turnout = attendees(people, action);
-      const modifiedBuzz = turnout * buzzModifier(buzz);
-
-      const add = (val) => (n) => Math.floor(n + val * modifiedBuzz);
-
-       return {
-         reputation: add(action.reputation),
-         people: add(action.people),
-         money: add(action.money),
-         buzz: add(action.reputation),
-       };
-   });
-
-  /*
-    view.displayEventResult(action,turnout,buzzModifier);
-
-    this.unlocked.Reputation = true;
-    view.unlock('ReputationReputationDiv');
-    view.unlock('ReputationBuzzDiv');
-  */
-
-  return {
-    update$,
-    DOM: xs.combine(game$, state$)
-    .map(([game, state]) => {
-        const {people} = game;
-        const {name, progress, completion, ready, threshold} = state;
-
-        if (!threshold.unlocked(game)) {
-          return null
-        }
-        return <div className="action">
-        <button className="plan" disabled={ready}> {planText(name, ready, progress, completion)} </button>
-          <button className="do" disabled={!ready}>Go!</button>
-        </div>
-      })
-  };
-}
-
-function planText(name, ready, progress, completion) {
-  if (!ready) {
-    return "Plan " + name + " (needs " + (completion - progress).toLocaleString() + " shifts)"
-  } else {
-    return name + " Ready!";
-  }
-}
-
-function attendees(people, action) {
-  var attendees = people * (Math.random() * 0.5 + 0.5);
-  /*
-  for (var ally of this.allies) {
-    attendees += ally.members * Math.random();
-  };
-  */
-  if (action.max !== undefined) {
-    attendees = Math.min(attendees,action.max);
-  };
-  attendees = Math.floor(attendees);
-  return attendees;
-}
-
-function buzzModifier(buzz) {
-  return Math.floor(Math.log(buzz+1) / Math.LN10 + 1.000000001)
-};
-
-function actionIntents({DOM}) {
-  return {
-    plan$: DOM.select("div.action button.plan").events("click"),
-    do$: DOM.select("div.action button.do").events("click"),
-  };
 }
