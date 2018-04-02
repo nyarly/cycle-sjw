@@ -20,7 +20,7 @@ export class Threshold {
   }
 
   unlocked(game) {
-    return (game.started && game[this.statField] > this.minimum);
+    return (game.started && game[this.statField] >= this.minimum);
   }
 
 }
