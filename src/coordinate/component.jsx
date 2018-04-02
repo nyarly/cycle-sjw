@@ -1,8 +1,12 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
+import isolate from '@cycle/isolate';
+
+import {Threshold} from '../threshold';
 
 export function Coordinate({sources}) {
-  const march = March(sources);
+  const march = actionComponent(sources, new Threshold("March", "people", 10),
+    {completionFactor: 0.2, people:  0.2, money: 0, reputation: 0.8, max: undefined})
 
   const game$ = sources.Game.combinedValues("started", "people");
 
@@ -22,43 +26,48 @@ export function Coordinate({sources}) {
     };
 }
 
+//props: xs.of({ completionFactor: 0.2, people:  0.2, money: 0, reputation: 0.8, max: undefined, threshold: new Threshold("March", "people", 10), })
+function actionComponent(sources, threshold, {completionFactor, people, money, reputation, max}) {
+  return isolate(Action, threshold.name)({...sources,
+      props: xs.of({ threshold, completionFactor, people, money, reputation, max })
+    });
+}
 
-function March({Game, DOM}) {
-  const game$ = Game.combinedValues(
-    "started",
+function Action({Game, DOM, props}) {
+  const prop$ = props.remember();
+
+  const game$ = prop$
+  .map((p) => Game.combinedValues(
     "people",
     "buzz",
-    "volunteercoordinators"
-  );
+    "volunteercoordinators",
+    ...p.threshold.gameFields
+  ))
+  .flatten();
 
-  // {name:'March',header:'Coordination',completion:0.2,people: 0.2,money: 0,reputation:0.8,progress:0},
-  const prop$ = xs.of({
-      name: "March",
-      completion: 0.2,
-      people:  0.2,
-      money: 0,
-      reputation: 0.8,
-      max: undefined,
-    }).remember();
-
-  /*
-    }),
-    */
-
-  const newProps$ = prop$.map((ps) => {
-      return { ...ps, progress: 0, ready: false };
+  const newProps$ = xs.combine(prop$, game$)
+  .map(([ps, {people}]) => {
+      const base = { ...ps,
+        completion:  Math.floor(ps.completionFactor * people),
+        name: ps.threshold.name,
+        progress: 0,
+        ready: false
+      };
+      return base
     })
 
-  const clicks = marchIntents({DOM})
+  const clicks = actionIntents({DOM})
 
   const planning$ = clicks.plan$
   .compose(sampleCombine(game$))
-  .map((_, {people, volunteercoordinators}) => {
+  .map(([_, {people, volunteercoordinators}]) => {
       return (action) => {
-        completion = Math.min(Math.floor(action.completion * people), action.max);
+        action.completion = Math.floor(action.completionFactor * people);
+        if (action.max !== undefined) {
+          action.completion = Math.min(action.completion, action.max);
+        }
         action.progress += (1 + volunteercoordinators);
-        if (action.progress >= completion) {
-          action.progress = Infinity;
+        if (action.progress >= action.completion) {
           action.ready = true;
         };
         return action;
@@ -67,28 +76,35 @@ function March({Game, DOM}) {
 
 
   const reset$ = clicks.do$
-  .map((_) => {
+  .compose(sampleCombine(newProps$))
+  .map(([_, np]) => {
       return (action) => {
-        return {...action, ready: false};
+        return {...np, ready: false};
       };
     });
 
-  const state$ = xs.merge(planning$, reset$)
-  .fold((acc, f) => f(acc), newProps$);
+
+  const state$ = newProps$
+  .map((newProps) => {
+      return xs.merge(planning$, reset$)
+      .fold((acc, f) => f(acc), newProps)
+    })
+  .flatten();
 
   const update$ = clicks.do$
   .compose(sampleCombine(game$, prop$))
-  .map((_, [{people, buzz}, action]) => {
+  .map(([_, {people, buzz}, action]) => {
       const turnout = attendees(people, action);
-      const buzzModifier = buzzModifier(buzz);
-      const modifiedBuzz = turnout * buzzModifier;
+      const modifiedBuzz = turnout * buzzModifier(buzz);
+
+      const add = (val) => (n) => Math.floor(n + val * modifiedBuzz);
 
        return {
-       reputation: (n) => {return n + action.reputation * modifiedBuzz},
-       people: (n) => {return n + action.people * modifiedBuzz},
-       money: (n) => {return n + action.money * modifiedBuzz},
-       buzz: (n) => {return n + action.reputation * modifiedBuzz},
-     };
+         reputation: add(action.reputation),
+         people: add(action.people),
+         money: add(action.money),
+         buzz: add(action.reputation),
+       };
    });
 
   /*
@@ -102,25 +118,23 @@ function March({Game, DOM}) {
   return {
     update$,
     DOM: xs.combine(game$, state$)
-    .debug((v) => console.log("March DOM", v))
     .map(([game, state]) => {
-        console.log(state);
-        const {started, people} = game;
-        const {name, progress, completion, ready} = state;
+        const {people} = game;
+        const {name, progress, completion, ready, threshold} = state;
 
-        if (!started || people < 10) {
+        if (!threshold.unlocked(game)) {
           return null
         }
-        return <div id="march-action">
-        <button className="plan" disabled={ready}> {planText(name, progress, completion)} </button>
+        return <div className="action">
+        <button className="plan" disabled={ready}> {planText(name, ready, progress, completion)} </button>
           <button className="do" disabled={!ready}>Go!</button>
         </div>
       })
   };
 }
 
-function planText(name, progress, completion) {
-  if (progress < completion) {
+function planText(name, ready, progress, completion) {
+  if (!ready) {
     return "Plan " + name + " (needs " + (completion - progress).toLocaleString() + " shifts)"
   } else {
     return name + " Ready!";
@@ -145,9 +159,9 @@ function buzzModifier(buzz) {
   return Math.floor(Math.log(buzz+1) / Math.LN10 + 1.000000001)
 };
 
-function marchIntents({DOM}) {
+function actionIntents({DOM}) {
   return {
-    plan$: DOM.select("#march-action buton.plan").events("click"),
-    do$: DOM.select("#march-action button.do").events("click"),
+    plan$: DOM.select("div.action button.plan").events("click"),
+    do$: DOM.select("div.action button.do").events("click"),
   };
 }

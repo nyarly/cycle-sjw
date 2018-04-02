@@ -7,6 +7,7 @@ import actions from "./actions";
 import staff from "./staff";
 import potentialAllies from "./allies";
 import legislation from "./legislation";
+import * as utils from './utils';
 
 const degreesOfAcceptance = [
   'Unthinkable',
@@ -21,10 +22,6 @@ const degreesOfAcceptance = [
   'Radical',
   'Unthinkable'
 ];
-
-function attrname(name) {
-  return name.toLowerCase().replace(/ /g,'');
-}
 
 export class Game {
   constructor() {
@@ -79,7 +76,7 @@ export class Game {
       organization: true,
     };
     for (var employee of staff) {
-      this[attrname(employee.name)] = 0;
+      this[utils.attrname(employee.name)] = 0;
     }
 
   }
@@ -205,16 +202,16 @@ export class Game {
   }
 
   train(employee) {
-    if (this[attrnam(employee.name)] !== undefined) {
-      this[attrname(employee.name)]++;
+    if (this[utils.attrnam(employee.name)] !== undefined) {
+      this[utils.attrname(employee.name)]++;
     } else {
-      this[attrname(employee.name)] = 1;
+      this[utils.attrname(employee.name)] = 1;
     };
     //view.update(employee.name);
   }
 
   fire(employee) {
-    this[attrname(employee.name)]--;
+    this[utils.attrname(employee.name)]--;
     //view.update(employee.name);
   }
 
@@ -252,7 +249,7 @@ export class Game {
   }
 
   getUnlocked(name) {
-    const it = this.unlocked[attrname(name)]
+    const it = this.unlocked[utils.attrname(name)]
     if (it == null) {
       return new Locked(this)
     }
