@@ -14,7 +14,7 @@ export function Reputation({Game, ticks}) {
     DOM: game$
     .map((game) => {
         const {reputation, buzz} = game;
-        if (reputation <= 0) {
+        if (reputation < 1) {
           return null;
         }
 
