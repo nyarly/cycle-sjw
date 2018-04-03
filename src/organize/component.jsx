@@ -1,13 +1,13 @@
 import {thresholdFields, LockedThreshold} from '../allThresholds';
 
-export function Organize({sources}) {
-  const organize$ = sources.DOM.select("#organize").events("click")
+export function Organize({DOM, Game}) {
+  const organize$ = DOM.select("#organize").events("click")
 
-  const started$ = sources.Game.values("started");
-  const money$ = sources.Game.values("money");
-  const people$ = sources.Game.values("people");
+  const started$ = Game.values("started");
+  const money$ = Game.values("money");
+  const people$ = Game.values("people");
 
-  const game$ = sources.Game.combinedValues("started", "money", "people", ...thresholdFields("people"));
+  const game$ = Game.combinedValues("started", "money", "people", ...thresholdFields("people"));
 
   const org = {
     update$: organize$.map((click) => {

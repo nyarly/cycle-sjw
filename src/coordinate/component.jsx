@@ -5,7 +5,7 @@ import {actionComponent} from './actionComponent';
 
 import {actionDefs} from '../actionDefs';
 
-export function Coordinate({sources}) {
+export function Coordinate(sources) {
   const actions = actionDefs.map((def) => actionComponent(sources, def.threshold, def.props));
 
   const threshold = actionDefs.map((a) => a.threshold).reduce(

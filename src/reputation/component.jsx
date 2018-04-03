@@ -1,10 +1,16 @@
 import {thresholdFields, LockedThreshold} from '../allThresholds';
 
-export function Reputation(sources) {
-  const game$ = sources.Game
+export function Reputation({Game, ticks}) {
+  const game$ = Game
   .combinedValues("reputation", "buzz", ...thresholdFields("reputation"))
 
+  const update$ = ticks
+  .map(() => {
+      buzz: (n) =>  n - 0.01
+    })
+
   return {
+    update$,
     DOM: game$
     .map((game) => {
         const {reputation, buzz} = game;

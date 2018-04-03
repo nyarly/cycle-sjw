@@ -5,6 +5,7 @@ import {Coordinate} from './coordinate/component';
 import {Reputation} from './reputation/component';
 import isolate from '@cycle/isolate';
 import sampleCombine from 'xstream/extra/sampleCombine';
+import ticker from './ticker';
 
 export function App (sources) {
   const actions = intent({ sources });
@@ -28,12 +29,16 @@ function model({sources, actions}) {
   const create$ = newgame$
   .map((_) => { return {started: (_) => true} });
 
-  const org = isolate(Organize, "organize")({sources});
-  const coord = isolate(Coordinate, "coordinate")({sources});
-  const rep = isolate(Reputation, "reputation")(sources);
+  const ticks = ticker(100, xs.of(true).remember());
+
+  const org = isolate(Organize, "organize")({...sources, ticks});
+  const coord = isolate(Coordinate, "coordinate")({...sources, ticks});
+  const rep = isolate(Reputation, "reputation")({...sources, ticks});
   const panes = {org, coord, rep}
 
-  const update$ = xs.merge(create$, org.update$, coord.update$);
+  const updates = Object.getOwnPropertyNames(panes).map((pp) => panes[pp].update$);
+
+  const update$ = xs.merge(create$, ...updates);
 
   const restart$ = actions.restart$
   .map(() => { return { action: "clear", key: "liveGame" } });
