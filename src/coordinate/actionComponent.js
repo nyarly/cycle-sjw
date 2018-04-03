@@ -60,6 +60,7 @@ function Action({Game, DOM, props}) {
 
 
   const state$ = newProps$
+  .debug((np) => console.log("newprop", np))
   .map((newProps) => {
       return xs.merge(planning$, reset$)
       .fold((acc, f) => f(acc), newProps)

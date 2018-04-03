@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import {Game} from './game';
 import {adapt} from '@cycle/run/lib/adapt';
+import dropRepeats from 'xstream/extra/dropRepeats';
 
 // The game state driver takes as a sink a stream of update objects. It applies the function value of each key to the game state.
 // like { "people": (n) => n+1 }
@@ -62,6 +63,7 @@ class Sourcer {
     const result = xs.merge(
       xs.of(this.game[name]),
       base)
+    .compose(dropRepeats())
     .remember()
     .debug((v) => console.log("Sending", name, v));
 
