@@ -3,12 +3,11 @@ import sampleCombine from 'xstream/extra/sampleCombine';
 
 export function storeGame(main) {
   return function(sources) {
+
     const sinks = main(sources);
 
     const storeSrc = sources.Storage;
-
-    const storeSink = sinks.Storage
-    .debug((v) => console.log("User requested storage", v));
+    const storeSink = sinks.Storage;
 
     const liveGame$ = storeSrc.local
     .getItem("liveGame");
