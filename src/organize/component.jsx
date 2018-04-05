@@ -1,4 +1,5 @@
 import {thresholdFields, LockedThreshold} from '../allThresholds';
+import {roundNumber} from "../utils";
 
 export function Organize({DOM, Game}) {
   const organize$ = DOM.select("#organize").events("click")
@@ -34,10 +35,10 @@ export function Organize({DOM, Game}) {
         return <div id="organize-div">
         <h2>Organization</h2>
         <dl className="horizontal">
-        <dt>People</dt>
-        <dd>{people}</dd>
-        <dt>Money</dt>
-        <dd>${money}</dd>
+          <dt>People</dt>
+          <dd>{roundNumber(people)}</dd>
+          <dt>Money</dt>
+          <dd>${roundNumber(money)}</dd>
         </dl>
 
         <LockedThreshold game={game} stat="people" />

@@ -21,6 +21,7 @@ function Action({Game, DOM, props}) {
   .flatten();
 
   const newProps$ = xs.combine(prop$, game$)
+  .debug("newprops")
   .map(([ps, {people}]) => {
       const base = { ...ps,
         completion:  Math.floor(ps.completionFactor * people),
@@ -34,6 +35,7 @@ function Action({Game, DOM, props}) {
   const clicks = actionIntents({DOM})
 
   const planning$ = clicks.plan$
+  .startWith(1)
   .compose(sampleCombine(game$))
   .map(([_, {people, volunteercoordinators}]) => {
       return (action) => {
@@ -60,6 +62,8 @@ function Action({Game, DOM, props}) {
 
 
   const state$ = newProps$
+  .filter((np) => np.completion > 0)
+  .take(1)
   .debug((np) => console.log("newprop", np))
   .map((newProps) => {
       return xs.merge(planning$, reset$)

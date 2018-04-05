@@ -29,7 +29,7 @@ function model({sources, actions}) {
   const create$ = newgame$
   .map((_) => { return {started: (_) => true} });
 
-  const ticks = ticker(100, xs.of(true).remember());
+  const ticks = ticker(1000, xs.of(true).remember());
 
   const org = isolate(Organize, "organize")({...sources, ticks});
   const coord = isolate(Coordinate, "coordinate")({...sources, ticks});

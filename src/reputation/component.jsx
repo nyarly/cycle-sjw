@@ -1,4 +1,5 @@
 import {thresholdFields, LockedThreshold} from '../allThresholds';
+import {roundNumber} from "../utils";
 
 export function Reputation({Game, ticks}) {
   const game$ = Game
@@ -6,7 +7,7 @@ export function Reputation({Game, ticks}) {
 
   const update$ = ticks
   .map(() => {
-      buzz: (n) =>  n - 0.01
+      return { buzz: (n) =>  n - 0.01 };
     })
 
   return {
@@ -22,9 +23,9 @@ export function Reputation({Game, ticks}) {
         <h2>Reputation</h2>
         <dl className="horizontal">
         <dt>Reputation</dt>
-        <dd>{reputation}</dd>
+        <dd>{roundNumber(reputation)}</dd>
         <dt>Buzz</dt>
-        <dd>{buzz}</dd>
+        <dd>{roundNumber(buzz)}</dd>
         </dl>
 
         <LockedThreshold game={game} stat="reputation" />
