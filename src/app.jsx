@@ -9,8 +9,8 @@ import ticker from './ticker';
 
 export function App (sources) {
   const actions = intent({ sources });
-  const {restart$, update$, panes} = model({ sources, actions });
-  const view$ = view({ sources, panes });
+  const {restart$, update$, pane$} = model({ sources, actions });
+  const view$ = view({ sources, pane$ });
 
   return {DOM: view$, Game: update$, Storage: restart$};
 }
@@ -31,31 +31,41 @@ function model({sources, actions}) {
 
   const ticks = ticker(1000, xs.of(true).remember());
 
-  const org = isolate(Organize, "organize")({...sources, ticks});
-  const coord = isolate(Coordinate, "coordinate")({...sources, ticks});
-  const rep = isolate(Reputation, "reputation")({...sources, ticks});
-  const panes = {org, coord, rep}
+  const components = {
+    org: isolate(Organize, "organize")({...sources, ticks}),
+    coord: isolate(Coordinate, "coordinate")({...sources, ticks}),
+    rep: isolate(Reputation, "reputation")({...sources, ticks}),
+  }
 
-  const updates = Object.getOwnPropertyNames(panes).map((pp) => panes[pp].update$);
+  const updates = Object.getOwnPropertyNames(components).map((pp) => components[pp].update$);
+
+  const pane$ = xs.combine(...Object.getOwnPropertyNames(components).map((pp) => components[pp].DOM
+      .debug(pp)
+      .startWith(null)
+    ))
+  .map((ps) => {
+      const panes = {};
+      Object.getOwnPropertyNames(components).forEach((pp, idx) => {
+          panes[pp] = ps[idx];
+        });
+      return panes;
+    })
 
   const update$ = xs.merge(create$, ...updates);
 
   const restart$ = actions.restart$
   .map(() => { return { action: "clear", key: "liveGame" } });
 
-  return { restart$, update$, panes };
+  return { restart$, update$, pane$ };
 }
 
-function view({sources, panes}) {
+function view({sources, pane$}) {
   const start$ = sources.Game.values("started");
   const vtree$ = xs.combine(
     start$,
-    panes.org.DOM,
-    panes.coord.DOM,
-    panes.rep.DOM,
+    pane$
   )
-  .map(([started, org, coord, rep]) => {
-      const panes = {org, coord, rep};
+  .map(([started, panes]) => {
       return <div id="main">
       <TopMenu />
       <GameView started={started} panes={panes} />

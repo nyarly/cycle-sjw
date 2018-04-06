@@ -16,8 +16,16 @@ export function FALQSCommGameStateDriver(sink$, name) {
   sink$
   .addListener({
       next: (updateBundle) => {
+        if (updateBundle.hasOwnProperty("__game__")) {
+          theGame = updateBundle.__game__(theGame)
+          source.game = theGame;
+          console.log("Whole game update", theGame)
+        }
 
         for(const up in updateBundle) {
+          if (up === "__game__") {
+            continue
+          }
           const old = theGame[up]
           const nw = updateBundle[up](old)
 

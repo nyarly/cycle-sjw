@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
+import {Game} from './game';
 
 export function storeGame(main) {
   return function(sources) {
@@ -22,7 +23,7 @@ export function storeGame(main) {
     const loadedGame$ = xs.merge(bootstrapGame$,refreshGame$)
     .map( (v) => {
         if (v === undefined) {
-          return {};
+          return { __game__: () => new Game() };
         }
         const obj = JSON.parse(v);
         const up = {};
@@ -32,7 +33,13 @@ export function storeGame(main) {
         return up;
       })
 
-    const gameSrc = sources.Game.wholeGame();
+
+    const resetGame = storeSink
+    .filter((s) => (s.action == "clear" && s.key == "liveGame"))
+    .map(() => new Game());
+
+    const gameSrc = xs.merge( sources.Game.wholeGame(), resetGame)
+    .debug("gameSrc");
 
     const gameStore$ = gameSrc.map((game) => {
         return {
@@ -40,7 +47,7 @@ export function storeGame(main) {
           value: JSON.stringify(game),
         }
       })
-    .debug((v) => console.log("storage", v))
+    .debug("storage")
 
     return {
       ...sinks,
