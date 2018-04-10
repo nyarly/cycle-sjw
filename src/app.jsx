@@ -29,7 +29,8 @@ function model({sources, actions}) {
   const create$ = newgame$
   .map((_) => { return {started: (_) => true} });
 
-  const ticks = ticker(1000, xs.of(true).remember());
+  const started$ = sources.Game.values("started");
+  const ticks = ticker(1000, started$);
 
   const components = {
     org: isolate(Organize, "organize")({...sources, ticks}),

@@ -80,6 +80,24 @@ export class Game {
     }
   }
 
+  get buzz() {
+    if (this._buzz === undefined) {
+      return 0;
+    }
+    if  (isNaN(this._buzz)) {
+      return 0;
+    }
+    return this._buzz;
+  }
+
+  set buzz(v) {
+    if (v >= 0) {
+      this._buzz = v;
+    } else {
+      this._buzz = 0;
+    }
+  }
+
   get totalStaff() {
     let sum = 0;
     for (const emp of staff) {
@@ -94,16 +112,6 @@ export class Game {
 
   update(stat,add) {
     this[stat.toLowerCase().replace(/ /g,'')] += add;
-    /*
-    if (stat == 'People') {
-      for (var action of this.actions) {
-        //view.updateButton(action);
-      };
-    } else if (stat == 'Support') {
-      this.chances = 0;
-      this.update("Chances",this.electoralChances());
-    };
-    */
   }
 
   attendees(action) {
@@ -115,19 +123,6 @@ export class Game {
     if (action.max !== undefined) {attendees = Math.min(attendees,action.max);};
     return attendees;
   }
-
-  /*
-  organize() {
-    var noRecruit = true;
-    if (Math.random() < 0.5) {
-      noRecruit = false;
-      this.update('People',1);
-    };
-    if (noRecruit || (!noRecruit && Math.random() < 0.5) ) {
-      this.update('Money',Math.max(1,Math.random() * Math.random() * 100 << 0));
-    };
-  }
-  */
 
   planAction(action) {
     if (action.header == 'Coordination') {
@@ -155,6 +150,7 @@ export class Game {
     if (action.header == 'Coordination') {
       var turnout = this.attendees(action);
       var buzzModifier = this.buzzModifier();
+      console.log("buzz Mod", buzzModifier);
       //view.displayEventResult(action,turnout,buzzModifier);
       this.update('Reputation',action.reputation * turnout * buzzModifier);
       this.update('People',action.people * turnout * buzzModifier);
